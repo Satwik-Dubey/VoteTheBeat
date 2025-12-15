@@ -17,7 +17,7 @@ datasource db {
 
 
 model Session {
-  id        String   @id @default(uuid()) // Primary key (unique session ID)
+  id        String   @id @default(uuid())
   name      String
   createdAt DateTime @default(now())
 
@@ -25,14 +25,30 @@ model Session {
 }
 
 model Song {
-  id         String   @id @default(uuid())  //// Unique song record ID
-  title      String
-  artist     String
-  imageUrl   String?                  //Proceed to Song APIs (temporary data)”
-  votes      Int      @default(0)
-  sessionId  String                        // Foreign key → which session this song belongs to
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  trackId   String            // Spotify (or external API) song ID
+  title     String
+  artist    String
+  imageUrl  String?
+  addedBy   String            // userId who added the song
+  votes     Int      @default(0)
 
-  //  Relationship definition
-  session    Session  @relation(fields: [sessionId], references: [id])  // Defines the relationship between Song and Session,  sessionId belongs to this model,  It references Session.id
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+
+  votesList Vote[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, trackId]) // same song only once per session
+}
+
+model Vote {
+  id      String @id @default(uuid())
+  songId String
+  userId String
+
+  song   Song   @relation(fields: [songId], references: [id])
+
+  @@unique([songId, userId]) // user can vote once per song
 }
