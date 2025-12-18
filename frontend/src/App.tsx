@@ -1,8 +1,13 @@
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Session from "./pages/Session";
+
 function App() {
   return (
-    <div>
-      <h1>Vote The Beat</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/Session" element={<Session />} />
+    </Routes>
   )
 }
 
