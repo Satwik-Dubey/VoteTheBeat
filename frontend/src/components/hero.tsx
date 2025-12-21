@@ -1,18 +1,59 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
+import { useNavigate } from 'react-router-dom'
+import { createSession } from "@/services/api";
 import { Highlighter } from "@/components/ui/highlighter";
-import shared from "../assets/friends.png"
-import vote from "../assets/vote.png"
-import music from "../assets/musical-note.png"
-import real from "../assets/tasks.png"
+
+import shared from "../assets/friends.png";
+import vote from "../assets/vote.png";
+import music from "../assets/musical-note.png";
+import real from "../assets/tasks.png";
+
 function Hero(): JSX.Element {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sessionName, setSessionName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleCreateSession = async () => {
+    if (!sessionName.trim()) {
+      setError("Session name is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const session = await createSession(sessionName);
+
+      // Close modal and navigate
+      setIsModalOpen(false);
+      setSessionName("");
+      navigate(`/session/${session.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong! Try again");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSessionName("");
+    setError("");
+  };
 
   return (
     <>
+      {/* HERO SECTION */}
       <section className="bg-white dark:bg-gray-900 mt-10">
         <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
 
-          <h1 className="mb-4 text-4xl font-mono tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+          <h1 className="mb-4 text-4xl font-mono tracking-tight leading-none md:text-6xl dark:text-white">
             <Highlighter action="highlight" color="#059669">
               Real-Time
             </Highlighter>{" "}
@@ -23,115 +64,114 @@ function Hero(): JSX.Element {
             Platform
           </h1>
 
-          <p className="mb-8 text-lg font-sans text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
-            Create sessions, add  music tracks & vote together to decide what plays next.
+          <p className="mb-8 text-lg text-gray-500 dark:text-gray-400">
+            Create sessions, add music tracks & vote together.
           </p>
 
-          {/* Modal Section */}
-          <div className="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-            {/* Modal toggle - Update the button styling */}
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="relative border-2 bg-green-600 cursor-pointer font-extrabold py-2.5 px-10 text-gray-800 transition-colors before:absolute before:left-0 before:top-0 before:-z-10 before:h-full before:w-full before:origin-top-left before:scale-x-0 before:bg-gray-800 before:transition-transform before:duration-300 before:content-[''] hover:text-white before:hover:scale-x-100 border-solid border-black shadow-[-7px_7px_0px_#000000]"
-              type="button"
+          {/* CREATE SESSION BUTTON */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="relative border-2 bg-green-600 font-extrabold py-2.5 px-10 border-black shadow-[-7px_7px_0px_#000000] font-mono"
+          >
+            Create a session
+          </button>
+
+          {/* MODAL */}
+          {isModalOpen && (
+            <div
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
+              onClick={closeModal}
             >
-              Create a session
-            </button>
-
-            {/* Main modal - Update the modal styling */}
-            {isModalOpen && (
               <div
-                className="fixed inset-0 bg-transparent bg-opacity-20 backdrop-blur-xl flex justify-center items-center"
-                onClick={() => setIsModalOpen(false)}
+                className="bg-white p-6 w-96 border-2 border-black shadow-[-7px_7px_0px_#000000]"
+                onClick={(e) => e.stopPropagation()}
               >
-                <div
-                  className="bg-white p-8 relative w-96 border-2 border-black shadow-[-7px_7px_0px_#000000]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Modal header with close button */}
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    aria-label="Close modal"
-                    title="Close"
-                    className="absolute top-2 right-2 border-solid border-2 text-black border-black shadow-[-3px_3px_0px_#000000] p-1 bg-white hover:bg-gray-100"
-                  >
-                    <svg className="w-5 cursor-pointer h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  </button>
-                  <h3 className="text-2xl font-extrabold font-mono mb-6">
-                    Join Session
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-mono font-bold">
+                    Create Session
                   </h3>
+                  <button
+                    onClick={closeModal}
+                    className="text-gray-500 hover:text-black text-2xl"
+                    aria-label="Close modal"
+                  >
+                    ×
+                  </button>
+                </div>
 
-                  {/* Modal body */}
-                  <form className="space-y-4">
-                    <div>
-                      <label htmlFor="sessionName" className="block mb-5 text-xl text-gray-900 font-mono">
-                        Session Name
-                      </label>
-                      <input
-                        type="text"
-                        id="sessionName"
-                        className="w-full border-2 border-black p-2 font-mono focus:outline-none focus:shadow-[-5px_5px_0px_#000000] shadow-[-3px_3px_0px_#000000] text-gray-900 text-sm"
-                        placeholder="Enter Session Name"
-                        required
-                      />
-                    </div>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleCreateSession();
+                  }}
+                >
+                  <div>
+                    <label className="block mb-2 font-mono">
+                      Session Name
+                    </label>
+                    <input
+                      type="text"
+                      value={sessionName}
+                      onChange={(e) => setSessionName(e.target.value)}
+                      className="w-full border-2 border-black p-2 shadow-[-3px_3px_0px_#000000]"
+                      placeholder="Enter session name"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-red-600 text-sm">{error}</p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      disabled={loading}
+                      className="flex-1 bg-gray-300 border-2 border-black py-2 font-mono shadow-[-7px_7px_0px_#000000] hover:bg-gray-400 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
                     <button
                       type="submit"
-                      className="w-full cursor-pointer relative border-2 bg-green-600 font-extrabold py-2.5 px-10 text-gray-800 transition-colors before:absolute before:left-0 before:top-0 before:-z-10 before:h-full before:w-full before:origin-top-left before:scale-y-0 before:bg-gray-800 before:transition-transform before:duration-300 before:content-[''] hover:text-white before:hover:scale-y-100 border-solid border-black shadow-[-7px_7px_0px_#000000] font-mono mt-6"
+                      disabled={loading}
+                      className="flex-1 bg-green-600 border-2 border-black py-2 font-mono shadow-[-7px_7px_0px_#000000] hover:bg-green-700 disabled:opacity-50"
                     >
-                      Create Session
+                      {loading ? "Creating..." : "Create"}
                     </button>
-                  </form>
-                </div>
+                  </div>
+                </form>
               </div>
-            )}
-          </div>
-
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Key Features */}
+      {/* FEATURES */}
       <section className="mb-20">
         <h2 className="text-5xl font-mono text-center mb-12">
           Key Features
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mx-20 mb-40">
-
-          <div className="bg-white p-8 border-2 border-black shadow-[-7px_7px_0px_#000000] text-center">
-            <img src={shared} alt="Shared sessions icon" className="h-15 w-15 mx-30 -mt-3 mb-4"/>
-            <h3 className="text-2xl text-green-600 font-mono mb-4">Shared sessions</h3>
-            <p className="font-mono text-gray-600">
-              Create or join sessions with friends
-            </p>
-          </div>
-
-          <div className="bg-white p-8 border-2 border-black shadow-[-7px_7px_0px_#000000] text-center">
-            <img src={vote} alt="Real-time voting icon" className="h-15 w-15 mx-30 -mt-3 mb-4"/>
-            <h3 className="text-2xl text-green-600 font-mono mb-4">Real-time voting</h3>
-            <p className="font-mono text-gray-600">
-              Vote on songs and see results instantly
-            </p>
-          </div>
-
-          <div className="bg-white p-8 border-2 border-black shadow-[-7px_7px_0px_#000000] text-center">
-            <img src={music} alt="Search songs icon" className="h-15 w-15 mx-30 -mt-3 mb-4"/>
-            <h3 className="text-2xl text-green-600 font-mono mb-4">Search & Add songs</h3>
-            <p className="font-mono text-gray-600">
-              Find any song and add it to the session instantly
-            </p>
-          </div>
-
-          <div className="bg-white p-8 border-2 border-black shadow-[-7px_7px_0px_#000000] text-center">
-            <img src={real} alt="Live updates icon" className="h-15 w-15 mx-30 -mt-3 mb-4"/>
-            <h3 className="text-2xl text-green-600 font-mono mb-4">Live updates</h3>
-            <p className="font-mono text-gray-600">
-              Everyone stays in sync automatically.
-            </p>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mx-20">
+          {[
+            { img: shared, title: "Shared Sessions", desc: "Create or join sessions" },
+            { img: vote, title: "Real-time Voting", desc: "Vote instantly" },
+            { img: music, title: "Search Songs", desc: "Add any song" },
+            { img: real, title: "Live Updates", desc: "Everyone stays in sync" },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="bg-white p-6 border-2 border-black shadow-[-7px_7px_0px_#000000] text-center"
+            >
+              <img src={item.img as unknown as string} alt={item.title} className="mx-auto mb-4 w-12" />
+              <h3 className="text-xl font-mono text-green-600 mb-2">
+                {item.title}
+              </h3>
+              <p className="font-mono text-gray-600">{item.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
     </>

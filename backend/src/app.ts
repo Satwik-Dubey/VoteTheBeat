@@ -1,26 +1,26 @@
 import express from "express";
+import cors from "cors";
 import sessionRoutes from "./routes/session.routes";
 import voteRoutes from "./routes/vote.routes";
 import sessionSongsRoutes from "./routes/sessionSongs.routes";
 import songRoutes from "./routes/song.routes";
 
-
-
 const app = express();
+
+// CORS MUST be first
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+}));
+
+// Then JSON parser
 app.use(express.json());
 
-
-// Session APIs
-//Any request starting with /sessions is handled by session.routes.ts
+// Then routes
 app.use("/sessions", sessionRoutes);
-// Vote APIs
 app.use("/songs", voteRoutes);
-// Add song api
 app.use("/sessions", sessionSongsRoutes);
-// Delete
 app.use("/songs", songRoutes);
 
-
-
 export default app;
-

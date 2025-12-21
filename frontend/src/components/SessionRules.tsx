@@ -1,4 +1,6 @@
 "use client"
+import { useState, useEffect } from "react"
+import { useParams } from "react-router-dom"
 import {
   AnimatedSpan,
   Terminal,
@@ -7,31 +9,50 @@ import {
 import share from "../assets/share-2.png"
 
 export default function SessionRules() {
+  const { id } = useParams<{ id: string }>()
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/session/${id}`
+    navigator.clipboard.writeText(link)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <>
       {/* Parent Flex Container */}
-      <div className="flex mx-20 mt-10 gap-10">
+      <div className="flex mx-20 mt-24 gap-10">
 
-        {/* LEFT: Navbar / Session Info */}
+        {/* LEFT: Session Info */}
         <div className="flex flex-col w-1/4">
           <div className="mb-5 flex items-center gap-4">
-            <div className="relative inline-block w-fit border-2 bg-green-600 cursor-pointer font-bold py-2.5 px-6 text-gray-800 transition-colors before:absolute before:left-0 before:top-0 before:-z-10 before:h-full before:w-full before:origin-top-left before:scale-x-0 before:bg-gray-800 before:transition-transform before:duration-300 before:content-[''] hover:text-white before:hover:scale-x-100 border-solid border-black shadow-[-7px_7px_0px_#000000] font-mono">
-              <span>Test Session</span>
+            <div className="relative inline-block w-fit border-2 bg-green-600 font-bold py-2.5 px-6 text-gray-800 border-solid border-black shadow-[-7px_7px_0px_#000000] font-mono">
+              <span>Session</span>
             </div>
 
-            <img
-              src={share}
-              alt="Copy"
-              className="h-12 w-12 border-2 p-2 cursor-pointer border-black shadow-[-3px_3px_0px_#000000]"
-            />
+            <button
+              onClick={handleCopyLink}
+              title={copied ? "Copied!" : "Copy session link"}
+              className="relative"
+            >
+              <img
+                src={share}
+                alt="Copy"
+                className="h-12 w-12 border-2 p-2 cursor-pointer border-black shadow-[-3px_3px_0px_#000000] hover:bg-gray-100"
+              />
+              {copied && (
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                  Copied!
+                </span>
+              )}
+            </button>
           </div>
 
-          <div className="font-mono text-xl mt-5">
-            Created at:
-          </div>
-
-          <div className="font-mono text-xl mt-5">
-            Songs in Queue:
+          <div className="font-mono text-lg mt-5">
+            <span className="font-bold">Session ID:</span>
+            <br />
+            <span className="text-sm text-gray-600 break-all">{id}</span>
           </div>
         </div>
 
@@ -57,7 +78,7 @@ export default function SessionRules() {
               2) No Self-Voting
             </AnimatedSpan>
             <AnimatedSpan delay={3400} className="text-black">
-              You can’t vote for a song you added yourself.
+              You can't vote for a song you added yourself.
             </AnimatedSpan>
 
             <AnimatedSpan delay={4000} className="text-blue-500">
