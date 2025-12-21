@@ -1,6 +1,6 @@
 import http from "http";
-import app from "./app";
 import { Server } from "socket.io";
+import app from "./app";
 
 const PORT = 4000;
 
@@ -31,7 +31,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server
 server.listen(PORT, () => {
   console.log(`Backend + WebSocket running on http://localhost:${PORT}`);
 });

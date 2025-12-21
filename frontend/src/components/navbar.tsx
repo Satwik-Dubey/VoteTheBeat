@@ -12,8 +12,8 @@ function Navbar() {
                     </a>
                 </div>
                 <div className="absolute end-20 top-0 h-full flex items-center">
-                    <a href='https://x.com/_satwikdubey' target="_blank">
-                        <img src={twitter} className='h-8 w-8'/>
+                    <a href='https://x.com/_satwikdubey' target="_blank" rel="noopener noreferrer" title="Visit Satwik on X">
+                        <img src={twitter} className='h-8 w-8' alt="Satwik on X" />
                     </a>
                     
                 </div>

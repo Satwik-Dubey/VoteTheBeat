@@ -5,8 +5,6 @@ const router = Router();
 
 // Create a session
 router.post("/", async (req, res) => {
-  console.log("POST /sessions called with body:", req.body);
-  
   const { name } = req.body;
 
   if (!name) {
@@ -18,7 +16,6 @@ router.post("/", async (req, res) => {
       data: { name },
     });
 
-    console.log("Session created successfully:", session);
     res.json(session);
   } catch (error) {
     console.error("Error creating session:", error);
@@ -26,6 +23,29 @@ router.post("/", async (req, res) => {
       message: "Failed to create session", 
       error: error instanceof Error ? error.message : String(error) 
     });
+  }
+});
+
+// Get session details by ID
+router.get("/:sessionId", async (req, res) => {
+  const { sessionId } = req.params;
+
+  try {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        songs: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    res.json(session);
+  } catch (error) {
+    console.error("Error fetching session:", error);
+    res.status(500).json({ message: "Failed to fetch session" });
   }
 });
 

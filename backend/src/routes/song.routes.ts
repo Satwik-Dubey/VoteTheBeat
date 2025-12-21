@@ -1,49 +1,65 @@
 import { Router } from "express";
 import prisma from "../prisma";
-import { io } from "../server";
 
 const router = Router();
 
-// Remove a song
+// Create a session
+router.post("/", async (req, res) => {
+  const { name } = req.body;
 
-// Delete /songs/:songId
-
-router.delete("/:songId", async (req, res) => {
-  const { songId } = req.params;
-  const { userId } = req.body;
-
-  // Validate input
-  if (!userId) {
-    return res.status(400).json({ message: "userId is required" });
+  if (!name) {
+    return res.status(400).json({ message: "Session name is required" });
   }
 
-  // Find song
-  const song = await prisma.song.findUnique({
-    where: { id: songId },
-  });
-
-  if (!song) {
-    return res.status(404).json({ message: "Song not found" });
-  }
-
-  // Only the user who added the song can remove it
-  if (song.addedBy !== userId) {
-    return res.status(403).json({
-      message: "You can only remove songs added by you",
-    });
-  }
-  // hamlog Notify karenge all users ko  before deletion
-    io.to(`session:${song.sessionId}`).emit("song-removed", {
-    songId: song.id,
+  try {
+    const session = await prisma.session.create({
+      data: { name },
     });
 
-  // Delete song
-  await prisma.song.delete({
-    where: { id: songId },
-  });
+    res.json(session);
+  } catch (error) {
+    console.error("Error creating session:", error);
+    res.status(500).json({ 
+      message: "Failed to create session", 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+});
 
+// Get session details by ID
+router.get("/:sessionId", async (req, res) => {
+  const { sessionId } = req.params;
 
-  res.json({ message: "Song removed successfully" });
+  try {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        songs: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    res.json(session);
+  } catch (error) {
+    console.error("Error fetching session:", error);
+    res.status(500).json({ message: "Failed to fetch session" });
+  }
+});
+
+// Get all sessions
+router.get("/", async (req, res) => {
+  try {
+    const sessions = await prisma.session.findMany({
+      include: { songs: true },
+    });
+    res.json(sessions);
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ message: "Failed to fetch sessions" });
+  }
 });
 
 export default router;
