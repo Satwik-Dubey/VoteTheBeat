@@ -1,8 +1,9 @@
 import { Router } from "express";
-import prisma from "../prisma";
+import { PrismaClient } from "@prisma/client";
 import { io } from "../server";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 /**
  * Vote for a song
@@ -17,28 +18,35 @@ router.post("/:songId/vote", async (req, res) => {
     return res.status(400).json({ message: "userId is required" });
   }
 
-  // Find the song
-  const song = await prisma.song.findUnique({
-    where: { id: songId },
-  });
-
-  if (!song) {
-    return res.status(404).json({ message: "Song not found" });
-  }
-
-  // Rule 1: User cannot vote on own song
-  if (song.addedBy === userId) {
-    return res.status(403).json({
-      message: "You can't vote on your own song",
-    });
-  }
-
   try {
+    // Find the song
+    const song = await prisma.song.findUnique({
+      where: { id: songId },
+    });
+
+    if (!song) {
+      return res.status(404).json({ message: "Song not found" });
+    }
+
+    // Rule 2: User cannot vote twice
+    const existingVote = await prisma.vote.findFirst({
+      where: {
+        songId,
+        userId, // Changed from odUserId to userId
+      },
+    });
+
+    if (existingVote) {
+      return res.status(400).json({
+        message: "You already voted for this song",
+      });
+    }
+
     // Create vote entry (unique constraint prevents double voting)
     await prisma.vote.create({
       data: {
         songId,
-        userId,
+        userId, // Changed from odUserId to userId
       },
     });
 
@@ -52,13 +60,10 @@ router.post("/:songId/vote", async (req, res) => {
     // Notify all users in this session about vote update
     io.to(`session:${updatedSong.sessionId}`).emit("song-voted", updatedSong);
 
-
     res.json(updatedSong);
   } catch (error) {
-    // Rule 2: User cannot vote twice
-    return res.status(409).json({
-      message: "You have already voted for this song",
-    });
+    console.error("Error voting for song:", error);
+    res.status(500).json({ message: "Failed to vote for song" });
   }
 });
 

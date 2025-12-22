@@ -22,13 +22,13 @@ function Footer() {
                         <a href="#" className="hover:underline me-4 md:me-6 hover:text-green-600">Licensing</a>
                       </li>
                       <li>
-                        <a href="#" className="hover:underline hover:text-green-600">Contact</a>
+                        <a href="https://www.linkedin.com/in/satwikdubey10/" target="blank" className="hover:underline hover:text-green-600">Contact</a>
                       </li>
                     </ul>
                   </div>
                   <hr className="my-6 border-black border-2 sm:mx-auto lg:my-8" />
                   <span className="block text-sm text-gray-800 font-mono sm:text-center">
-                    © 2024 <a href="#" className="hover:underline hover:text-green-600 font-bold">VoteTheBeat™</a>. All Rights Reserved.
+                    © 2026 <a href="#" target="blank" className="hover:underline hover:text-green-600 font-bold">VoteTheBeat™</a>. All Rights Reserved.
                   </span>
                 </div>
               </footer>

@@ -228,7 +228,7 @@ export const Terminal = ({
     <div
       ref={containerRef}
       className={cn(
-        "bg-white border-2 border-black shadow-[-7px_7px_0px_#000000] z-0 w-full ", // removed max-h
+        "bg-white border-2 border-black shadow-[-7px_7px_0px_#000000] z-0 w-full h-full", // added h-full
         className
       )}
     >
@@ -241,8 +241,8 @@ export const Terminal = ({
         </div>
       </div>
 
-      {/* Content area */}
-      <pre className="p-4 overflow-auto h-full max-h-[400px]">
+      {/* Content area - removed max-h constraint */}
+      <pre className="p-4 overflow-auto h-[calc(100%-60px)]">
         <code className="grid gap-y-2 font-mono text-lg text-black">
           {wrappedChildren}
         </code>

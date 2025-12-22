@@ -1,7 +1,8 @@
 import { Router } from "express";
-import prisma from "../prisma";
+import { PrismaClient } from "@prisma/client";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 // Create a session
 router.post("/", async (req, res) => {
@@ -26,6 +27,19 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Get all sessions (PUT THIS BEFORE /:sessionId to avoid conflicts)
+router.get("/", async (req, res) => {
+  try {
+    const sessions = await prisma.session.findMany({
+      include: { songs: true },
+    });
+    res.json(sessions);
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ message: "Failed to fetch sessions" });
+  }
+});
+
 // Get session details by ID
 router.get("/:sessionId", async (req, res) => {
   const { sessionId } = req.params;
@@ -46,19 +60,6 @@ router.get("/:sessionId", async (req, res) => {
   } catch (error) {
     console.error("Error fetching session:", error);
     res.status(500).json({ message: "Failed to fetch session" });
-  }
-});
-
-// Get all sessions
-router.get("/", async (req, res) => {
-  try {
-    const sessions = await prisma.session.findMany({
-      include: { songs: true },
-    });
-    res.json(sessions);
-  } catch (error) {
-    console.error("Error fetching sessions:", error);
-    res.status(500).json({ message: "Failed to fetch sessions" });
   }
 });
 

@@ -1,7 +1,9 @@
 import { Router } from "express";
-import prisma from "../prisma";
+import { PrismaClient } from "@prisma/client";
+import { io } from "../server";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 // Create a session
 router.post("/", async (req, res) => {
@@ -59,6 +61,35 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error("Error fetching sessions:", error);
     res.status(500).json({ message: "Failed to fetch sessions" });
+  }
+});
+
+// Delete a song
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // First get the song to know which session it belongs to
+    const song = await prisma.song.findUnique({
+      where: { id },
+    });
+
+    if (!song) {
+      return res.status(404).json({ error: "Song not found" });
+    }
+
+    // Delete the song
+    await prisma.song.delete({
+      where: { id },
+    });
+
+    // Emit socket event to notify other users
+    io.to(`session:${song.sessionId}`).emit("song-removed", { songId: id });
+
+    res.json({ message: "Song deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting song:", error);
+    res.status(500).json({ error: "Failed to delete song" });
   }
 });
 
