@@ -2,7 +2,7 @@ import http from "http";
 import { Server } from "socket.io";
 import app from "./app";
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 // Create HTTP server using Express App
 const server = http.createServer(app);

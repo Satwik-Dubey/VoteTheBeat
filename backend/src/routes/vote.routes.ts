@@ -5,10 +5,9 @@ import { io } from "../server";
 const router = Router();
 const prisma = new PrismaClient();
 
-/**
- * Vote for a song
- * POST /songs/:songId/vote
- */
+
+ // Vote for a song
+
 router.post("/:songId/vote", async (req, res) => {
   const { songId } = req.params;
   const { userId } = req.body;
@@ -46,7 +45,7 @@ router.post("/:songId/vote", async (req, res) => {
     await prisma.vote.create({
       data: {
         songId,
-        userId, // Changed from odUserId to userId
+        userId, 
       },
     });
 
