@@ -1,0 +1,50 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: votethebeat-db
+    restart: unless-stopped
+    environment:
+      # These values come from .env file, or use defaults
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-votethebeat}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: votethebeat-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      # Database connection URL (auto-generated from variables above)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-votethebeat}?schema=public
+      NODE_ENV: production
+      PORT: 4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        npx prisma generate &&
+        npx prisma db push &&
+        echo 'Starting server...' &&
+        node dist/server.js
+      "
+
+volumes:
+  postgres_data:
+    driver: local

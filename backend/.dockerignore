@@ -1,0 +1,16 @@
+# Dependencies (reinstalled in Docker)
+node_modules
+
+# Build output (rebuilt in Docker)
+dist
+
+# Environment files (NEVER copy to Docker image!)
+.env
+.env.*
+
+# Git
+.git
+
+# Logs
+*.log
+npm-debug.log*
