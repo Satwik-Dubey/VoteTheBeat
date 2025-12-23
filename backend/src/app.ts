@@ -9,7 +9,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173", // for local dev
+      "https://vote-the-beat-app.vercel.app", // for our Vercel frontend URL
+    ],
     credentials: true,
   })
 );
