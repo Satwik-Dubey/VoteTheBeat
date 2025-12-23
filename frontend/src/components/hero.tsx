@@ -10,7 +10,9 @@ import vote from "../assets/vote.png";
 import music from "../assets/musical-note.png";
 import real from "../assets/tasks.png";
 
-function Hero(): JSX.Element {
+import React from "react";
+
+function Hero(): React.JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessionName, setSessionName] = useState("");
   const [loading, setLoading] = useState(false);

@@ -1,4 +1,4 @@
-import React from 'react'
+
 import logo from "../assets/logo.png"
 import twitter from "../assets/twitter-2.png"
 function Navbar() {
