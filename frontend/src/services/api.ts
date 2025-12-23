@@ -1,8 +1,9 @@
 import { getUserId } from "../utils/userId";
 
+// Use environment variable with fallback
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
-// ============= TYPES =============
+// Types
 
 export type Song = {
   id: string;
@@ -22,7 +23,7 @@ export type Session = {
   createdAt: string;
 };
 
-// ============= SESSION APIs =============
+// Session API
 
 export async function createSession(name: string): Promise<Session> {
   const res = await fetch(`${API_BASE_URL}/sessions`, {

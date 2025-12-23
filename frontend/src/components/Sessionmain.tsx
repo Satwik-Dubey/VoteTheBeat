@@ -3,12 +3,11 @@ import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   getSessionSongs,
-  getSession,
   addSongToSession,
   voteSong,
   removeSong,
 } from "../services/api";
-import type { Song, Session } from "../services/api";
+import type { Song } from "../services/api";
 import { getUserId } from "../utils/userId";
 import { useSocket } from "../hooks/useSocket";
 import { searchSongs } from "../services/saavn";
@@ -18,7 +17,6 @@ function Sessionmain() {
   const { id: sessionId } = useParams<{ id: string }>();
   const userId = getUserId();
 
-  const [session, setSession] = useState<Session | null>(null);
   const [query, setQuery] = useState("");
   const [queue, setQueue] = useState<Song[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -60,11 +58,7 @@ function Sessionmain() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [sessionData, songs] = await Promise.all([
-          getSession(sessionId),
-          getSessionSongs(sessionId),
-        ]);
-        setSession(sessionData);
+        const songs = await getSessionSongs(sessionId);
         setQueue(songs);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to load session");
@@ -168,18 +162,18 @@ function Sessionmain() {
 
   return (
     <div className="mx-4 md:mx-10 lg:mx-20 mt-10 md:mt-10 pb-20">
-      {/* Side by Side Container - items-stretch makes both equal height */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-stretch">
+      
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start">
         
-        {/* LEFT: Search Panel */}
-        <div className="w-full lg:w-1/2 flex">
-          <div className="bg-white border-2 border-black shadow-[-7px_7px_0px_#000000] p-4 md:p-6 flex-1 flex flex-col">
+        {/* LEFT: Search Panel - fixed height */}
+        <div className="w-full lg:w-1/2">
+          <div className="bg-white border-2 border-black shadow-[-7px_7px_0px_#000000] p-4 md:p-6 h-[550px] flex flex-col">
             <div className="flex items-center gap-2 mb-4 md:mb-6">
               <span className="text-xl md:text-2xl font-mono font-bold text-black">Search Songs</span>
             </div>
 
             <div className="flex flex-col gap-3">
-              <div className="relative flex-1">
+              <div className="relative">
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -218,7 +212,7 @@ function Sessionmain() {
               </button>
             </div>
 
-            {/* Results - flex-1 makes it grow to fill remaining space */}
+            {/* Results  */}
             <div className="mt-6 flex-1 overflow-y-auto space-y-3 pr-1">
               {searching && (
                 <div className="font-mono text-gray-700 text-center py-8">
@@ -265,9 +259,9 @@ function Sessionmain() {
           </div>
         </div>
 
-        {/* RIGHT: Song Queue Panel - grows with content, matches search panel height */}
-        <div className="w-full lg:w-1/2 flex">
-          <div className="bg-white border-2 border-black shadow-[-7px_7px_0px_#000000] p-4 md:p-6 flex-1">
+        {/* RIGHT: Song Queue Panel */}
+        <div className="w-full lg:w-1/2">
+          <div className="bg-white border-2 border-black shadow-[-7px_7px_0px_#000000] p-4 md:p-6">
             <div className="flex items-center gap-2 mb-4 md:mb-6 flex-wrap">
               <span className="text-xl md:text-2xl font-mono font-bold text-black">Song Queue</span>
               <span className="text-sm font-mono text-gray-600">({queue.length} songs)</span>
@@ -280,7 +274,7 @@ function Sessionmain() {
                 <div className="text-sm md:text-base">Search and add songs to get started!</div>
               </div>
             ) : (
-              /* Grows with content - no max-h */
+              /* Grows with content */
               <div className="space-y-3">
                 {sortedQueue.map((song, idx) => {
                   const isTop = idx === 0;
@@ -352,7 +346,7 @@ function Sessionmain() {
                           </button>
                         )}
 
-                        {/* No button shown when isMySong && song.votes > 0 */}
+                     
                       </div>
                     </div>
                   );

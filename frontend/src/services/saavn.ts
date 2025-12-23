@@ -8,13 +8,41 @@ export interface SearchResult {
   album?: string;
 }
 
-/**
- * Safely extract artist name from various API response formats
- */
-function getArtistName(song: any): string {
+// More complete type for song result from API
+interface SaavnSongResult {
+  id: string;
+  name?: string;
+  title?: string;
+  primaryArtists?: string;
+  artist?: string;
+  artists?: string | { primary?: Array<{ name: string }> };
+  image?: Array<{ link?: string; url?: string; quality?: string }> | string;
+  images?: Record<string, string>;
+  album?: { name?: string } | string;
+  more_info?: {
+    artistMap?: {
+      primary_artists?: Array<{ name: string }>;
+    };
+  };
+}
+
+interface SaavnSearchResponse {
+  success?: boolean;
+  data?: {
+    results?: SaavnSongResult[];
+  };
+  results?: SaavnSongResult[];
+}
+
+
+
+
+ // Safely extract artist name from various API response formats
+ 
+function getArtistName(song: SaavnSongResult): string {
   // Format 1: song.artists.primary (array)
-  if (song.artists?.primary && Array.isArray(song.artists.primary)) {
-    return song.artists.primary.map((a: any) => a.name).join(", ");
+  if (typeof song.artists === 'object' && song.artists?.primary && Array.isArray(song.artists.primary)) {
+    return song.artists.primary.map((a) => a.name).join(", ");
   }
   
   // Format 2: song.primaryArtists (string)
@@ -28,27 +56,27 @@ function getArtistName(song: any): string {
   }
   
   // Format 4: song.artists (string)
-  if (song.artists && typeof song.artists === "string") {
+  if (typeof song.artists === "string") {
     return song.artists;
   }
 
   // Format 5: song.more_info.artistMap.primary_artists
   if (song.more_info?.artistMap?.primary_artists) {
-    return song.more_info.artistMap.primary_artists.map((a: any) => a.name).join(", ");
+    return song.more_info.artistMap.primary_artists.map((a) => a.name).join(", ");
   }
 
   return "Unknown Artist";
 }
 
-/**
- * Safely extract cover image from various API response formats
- */
-function getCoverImage(song: any): string {
+
+ // to extract cover image from various API response formats
+
+function getCoverImage(song: SaavnSongResult): string {
   const placeholder = "https://via.placeholder.com/150";
 
   // Format 1: song.image (array of objects with quality/url)
   if (Array.isArray(song.image)) {
-    const highQuality = song.image.find((img: any) => img.quality === "500x500");
+    const highQuality = song.image.find((img) => img.quality === "500x500");
     return highQuality?.url || highQuality?.link || song.image[song.image.length - 1]?.url || song.image[song.image.length - 1]?.link || placeholder;
   }
 
@@ -65,9 +93,8 @@ function getCoverImage(song: any): string {
   return placeholder;
 }
 
-/**
- * Search songs on Saavn (via backend proxy)
- */
+// to Search songs on Saavn (via backend proxy)
+ 
 export async function searchSongs(query: string): Promise<SearchResult[]> {
   if (!query.trim()) return [];
 
@@ -80,22 +107,22 @@ export async function searchSongs(query: string): Promise<SearchResult[]> {
       throw new Error("Failed to search songs");
     }
 
-    const data = await response.json();
+    const data: SaavnSearchResponse = await response.json();
     console.log("Saavn API response:", data);
 
     // Handle different response structures
-    const results = data.data?.results || data.results || data.data || [];
+    const results: SaavnSongResult[] = data.data?.results || data.results || [];
 
     if (!results || results.length === 0) {
       return [];
     }
 
-    return results.map((song: any) => ({
+    return results.map((song: SaavnSongResult) => ({
       trackId: song.id,
       title: song.name || song.title || "Unknown Title",
       artist: getArtistName(song),
       cover: getCoverImage(song),
-      album: song.album?.name || song.album || undefined,
+      album: typeof song.album === 'object' ? song.album?.name : song.album,
     }));
   } catch (error) {
     console.error("Saavn API error:", error);
@@ -103,17 +130,22 @@ export async function searchSongs(query: string): Promise<SearchResult[]> {
   }
 }
 
-/**
- * Get song details by ID (via backend proxy)
- */
+//  Get song details by ID (via backend proxy)
+
 export async function getSongById(songId: string): Promise<SearchResult | null> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/saavn/song/${songId}`);
 
     if (!response.ok) return null;
 
-    const data = await response.json();
-    const song = data.data?.[0] || data[0] || data.data || data;
+    interface SongDetailResponse {
+      data?: SaavnSongResult[] | SaavnSongResult;
+    }
+
+    const data: SongDetailResponse = await response.json();
+    const song: SaavnSongResult | undefined = Array.isArray(data.data) 
+      ? data.data[0] 
+      : data.data;
 
     if (!song) return null;
 
@@ -122,7 +154,7 @@ export async function getSongById(songId: string): Promise<SearchResult | null> 
       title: song.name || song.title || "Unknown Title",
       artist: getArtistName(song),
       cover: getCoverImage(song),
-      album: song.album?.name || song.album || undefined,
+      album: typeof song.album === 'object' ? song.album?.name : song.album,
     };
   } catch (error) {
     console.error("Failed to fetch song details:", error);
