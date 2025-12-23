@@ -10,9 +10,13 @@ const server = http.createServer(app);
 // Create Socket.IO server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
-    credentials: true,
-  },
+    origin: [
+      "http://localhost:5173",
+      "https://vote-the-beat-app.vercel.app"
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
 // Handle socket connections

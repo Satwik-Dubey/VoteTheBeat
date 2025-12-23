@@ -62,7 +62,9 @@ export function useSocket({ sessionId, onSongAdded, onSongVoted, onSongRemoved }
     // STEP 1: Create new socket connection to the server
     // io(SOCKET_URL) creates a Socket.io client that auto-connects
 
-    socketRef.current = io(SOCKET_URL);
+    socketRef.current = io(SOCKET_URL, {
+      withCredentials: true,
+    });
 
 
     // STEP 2: Handle successful connection
